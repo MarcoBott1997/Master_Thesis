@@ -1,4 +1,3 @@
-
 #Data cleaning
 tab = read.table("data_merged.csv", header = TRUE, sep = "\t")
 
@@ -99,7 +98,7 @@ names_videogames_time = unique(dataset_videogames_time$subjectkey)
 write.table(names_videogames_time, file="id_videogames_time.txt", row.names=FALSE, col.names=FALSE, quote = FALSE)
 
 
-#MODELS FOR CBCL_SCORE
+#### MODELS FOR CBCL_SCORE
 
 #MODEL 1: FULL LINEAR REGRESSION ON SIMPLE DATASET
 simple_reg = lm(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+videogames_time+social_activities_time)
@@ -142,6 +141,7 @@ par(mfrow = c(2, 2))
 plot(simple_reg_glm)
 par(mfrow = c(1,1))
 
+
 #MODEL 2: FULL LINEAR REGRESSION ON STD DATASET
 std_dataset <- dataset %>% mutate_at(c("tot_screen_time","sleep_disturb","anx_depr","with_depr","som_comp","social_pr","thought_pr","att_pr","rule_br_bh","agg_bh","internalizing_score","externalizing_score","cbcl_score","age_months","people_cohabiting","physical_activity","height_cm","weight_kg","waist_cm","bmi","DIMS","SBD","DA","SWTD","DOES","SHY","tv_time","video_time","videogames_time","social_activities_time"), ~(scale(.) %>% as.vector))
 simple_reg_std = lm(std_dataset$cbcl_score~std_dataset$age_months+std_dataset$sex+std_dataset$parents_income+std_dataset$people_cohabiting+std_dataset$height_cm+std_dataset$weight_kg+std_dataset$waist_cm+std_dataset$bmi+std_dataset$race_ethnicity+std_dataset$DIMS+std_dataset$SBD+std_dataset$DA+std_dataset$SWTD+std_dataset$DOES+std_dataset$SHY+std_dataset$physical_activity+std_dataset$tv_time+std_dataset$video_time+std_dataset$videogames_time+std_dataset$social_activities_time)
@@ -152,239 +152,215 @@ interaction_reg = step(lm(cbcl_score~(age_months+sex+parents_income+people_cohab
 summary(interaction_reg)
 
 #MODEL 4: GLM WITH POISSON FAMILY
-mod_poisson = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+waist_cm+
-                    bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
+mod_poisson_cbcl = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                         race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_cbcl)
+drop1(mod_poisson_cbcl)
     #removing SBD and SOCIAL_ACTIVITIES_TIME
-mod_poisson = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+waist_cm+
-                    bmi+race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
+mod_poisson_cbcl = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                         race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
+summary(mod_poisson_cbcl)
 
 par(mfrow = c(2, 2))
-plot(mod_poisson)
+plot(mod_poisson_cbcl)
 par(mfrow = c(1,1))
 
 #MODEL 5: GLM WITH POISSON FAMILY WITH OVERDISPERSION
-mod_quasipoisson = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                       waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+mod_quasipoisson_cbcl = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                              race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                         video_time+videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_cbcl)
+drop1(mod_quasipoisson_cbcl, test = 'F')
     #removing SBD and SOCIAL_ACTIVITIES_TIME
-mod_quasipoisson = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                         waist_cm+bmi+race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+mod_quasipoisson_cbcl = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                              race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                          video_time+videogames_time, family = quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
-    #removing WEIGHT_KG
-mod_quasipoisson = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+
-                         waist_cm+bmi+race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+drop1(mod_quasipoisson_cbcl, test = 'F')
+    #removing SIZE
+mod_quasipoisson_cbcl = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+slenderness+
+                              race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                          video_time+videogames_time, family = quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
-    #removing BMI
-mod_quasipoisson = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+
-                         waist_cm+race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
-                         video_time+videogames_time, family = quasipoisson)
-drop1(mod_quasipoisson, test = 'F') 
+drop1(mod_quasipoisson_cbcl, test = 'F')
     #removing VIDEOGAMES_TIME
-mod_quasipoisson = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+
-                         waist_cm+race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+mod_quasipoisson_cbcl = glm(cbcl_score~age_months+sex+parents_income+people_cohabiting+slenderness+
+                              race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                          video_time, family = quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
-summary(mod_quasipoisson)
-
+drop1(mod_quasipoisson_cbcl, test = 'F')
+summary(mod_quasipoisson_cbcl)
 par(mfrow = c(2, 2))
-plot(mod_quasipoisson)
+plot(mod_quasipoisson_cbcl)
 par(mfrow = c(1,1))
 
 #MODEL 6: GLM WITH NEGATIVE BINOMIAL FAMILY
-mod_negbin = glm.nb(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                                    waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+mod_negbin_cbcl = glm.nb(cbcl_score~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                           race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                                     video_time+videogames_time+social_activities_time, link = "log")
 summary(mod_negbin, cor = FALSE)
 drop1(mod_negbin, test = "Chi")
     #removing SOCIAL_ACTIVITIES_TIME
-mod_negbin = glm.nb(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                                    waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+mod_negbin_cbcl = glm.nb(cbcl_score~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                           race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                                     video_time+videogames_time, link = "log")
-drop1(mod_negbin, test = "Chi") 
+drop1(mod_negbin_cbcl, test = "Chi") 
     #removing AGE_MONTHS
-mod_negbin = glm.nb(cbcl_score~sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                                    waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+mod_negbin_cbcl = glm.nb(cbcl_score~sex+parents_income+people_cohabiting+size+slenderness+
+                           race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                                     video_time+videogames_time, link = "log")
-drop1(mod_negbin, test = "Chi")
+drop1(mod_negbin_cbcl, test = "Chi")
     #removing VIDEOGAMES_TIME
-mod_negbin = glm.nb(cbcl_score~sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                                    waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+mod_negbin_cbcl = glm.nb(cbcl_score~sex+parents_income+people_cohabiting+size+slenderness+
+                           race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                                     video_time, link = "log")
-summary(mod_negbin)
+summary(mod_negbin_cbcl)
+   #removing SIZE
+mod_negbin_cbcl = glm.nb(cbcl_score~sex+parents_income+people_cohabiting+slenderness+
+                           race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+                           video_time, link = "log")
+summary(mod_negbin_cbcl)
 
 par(mfrow = c(2, 2))
-plot(mod_negbin)
+plot(mod_negbin_cbcl)
 par(mfrow = c(1,1))
 
 #MODEL 7 : GLM ZERO INFLATED MODELS
-mod_zip <- zeroinfl(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                                    waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
-                                    video_time+videogames_time+social_activities_time | age_months+sex+people_cohabiting+height_cm+weight_kg+
-                                    waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity,
+mod_zip_cbcl <- zeroinfl(cbcl_score~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                           race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+                          video_time+videogames_time+social_activities_time | sex+people_cohabiting+
+                           race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY,
                                     dist = "poisson", link = "logit")
-summary(mod_zip)
-
-mod_zinb <- zeroinfl(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                                     waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
-                                     video_time+videogames_time+social_activities_time, dist = "negbin", link = "logit")
-summary(mod_zinb)
-lrtest(mod_zip, mod_zinb)
-  #model with only significant features in the binomial part
-mod_zinb_1 <- zeroinfl(cbcl_score~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+
-                                       waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
-                                       video_time+videogames_time+social_activities_time | people_cohabiting+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY,
-                                      dist = "negbin", link = "logit")
-summary(mod_zinb_1)
-  #model with only significant features in both the parts
-mod_zinb_2 <- zeroinfl(cbcl_score~age_months+sex+parents_income+height_cm+weight_kg+
-                                       waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
-                                       video_time+videogames_time | people_cohabiting+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY,
-                                     dist = "negbin", link = "logit")
-summary(mod_zinb_2)
+summary(mod_zip_cbcl)
 
   #model after pca: introduction of size and slenderness in place of original body measures
-mod_zinb_pca <- zeroinfl(cbcl_score~age_months+sex+parents_income+slenderness+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+mod_zinb_cbcl <- zeroinfl(cbcl_score~age_months+sex+parents_income+slenderness+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                                 video_time+videogames_time| people_cohabiting + race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY, dist = "negbin", link = "logit")
-summary(mod_zinb_pca)
+summary(mod_zinb_cbcl)
 
-lrtest(mod_zinb_pca, mod_zinb_2) #model with size and slenderness is comparable with the one with multicollinearity
-
-check_collinearity(mod_zinb_pca) #there aren't high VIF anymore
+lrtest(mod_zip_cbcl, mod_zinb_cbcl)
 
 
-coeffs <- coef(mod_zinb_pca,model = "zero")
+coeffs <- coef(mod_zinb_cbcl,model = "zero")
 Z <- model.matrix(mod_zinb_pca,model = "zero")
 g <- Z %*% coeffs
 p <- exp(g) / (1 + exp(g))
 
-coeffs_count <- coef(mod_zinb_pca, model = "count")
-X <- model.matrix(mod_zinb_pca, model = "count")
+coeffs_count <- coef(mod_zinb_cbcl, model = "count")
+X <- model.matrix(mod_zinb_cbcl, model = "count")
 g2 <- X %*% coeffs_count
 mu1 <- exp(g2)
 
 mu <- (1 - p) * mu1
 
-res = residuals(mod_zinb_pca)
-pears_res = res / sqrt(mu*(1+mu1*p))  
-plot(res,cbcl_score) 
-plot(pears_res, cbcl_score) #•there's still heteroschedasticity
-
-#Model interpretation
-library(ggplot2)
-qplot(tv_time,mu, ylim = c(0,60)) + stat_smooth()
+res_cbcl = residuals(mod_zinb_cbcl)
+pears_res_cbcl = res / sqrt(mu*(1+mu1*p))  
+plot(res_cbcl,cbcl_score) 
+plot(pears_res_cbcl, cbcl_score) #•there's still heteroschedasticity
 
 
-#MODELS FOR ANX_DEPR
+#### MODELS FOR ANX_DEPR
 
-#MODEL 4: GLM WITH POISSON FAMILY
-mod_poisson = glm(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+#GLM WITH POISSON FAMILY
+mod_poisson_anx_depr = glm(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_anx_depr)
+drop1(mod_poisson_anx_depr)
 #removing VIDEOGAMES_TIME
-mod_poisson = glm(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_anx_depr = glm(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                     video_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_anx_depr)
+drop1(mod_poisson_anx_depr)
 #removing VIDEO_TIME
-mod_poisson = glm(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_anx_depr = glm(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                     social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_anx_depr)
+drop1(mod_poisson_anx_depr)
 #removing AGE_MONTHS
-mod_poisson = glm(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_anx_depr = glm(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                     social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_anx_depr)
+drop1(mod_poisson_anx_depr)
 #removing SBD
-mod_poisson = glm(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_anx_depr = glm(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                     social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_anx_depr)
+drop1(mod_poisson_anx_depr)
 #removing TV_TIME
-mod_poisson = glm(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_anx_depr = glm(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+
                     social_activities_time, family = poisson)
-summary(mod_poisson)
+summary(mod_poisson_anx_depr)
 
 par(mfrow = c(2, 2))
-plot(mod_poisson)
+plot(mod_poisson_anx_depr)
 par(mfrow = c(1,1))
 
-#MODEL 5: GLM WITH POISSON FAMILY WITH OVERDISPERSION
-mod_quasipoisson = glm(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+#GLM WITH POISSON FAMILY WITH OVERDISPERSION
+mod_quasipoisson_anx_depr = glm(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_anx_depr)
+drop1(mod_quasipoisson_anx_depr, test = 'F')
+
 #removing AGE_MONTHS, VIDEO_TIME and VIDEOGAMES_TIME
-mod_quasipoisson = glm(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_anx_depr = glm(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                          social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_anx_depr)
+drop1(mod_quasipoisson_anx_depr, test = 'F')
 #removing PARENTS_INCOME
-mod_quasipoisson = glm(anx_depr~sex+people_cohabiting+size+slenderness+
+mod_quasipoisson_anx_depr = glm(anx_depr~sex+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                          social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_anx_depr)
+drop1(mod_quasipoisson_anx_depr, test = 'F')
 #removing TV_TIME and SBD
-mod_quasipoisson = glm(anx_depr~sex+people_cohabiting+size+slenderness+
+mod_quasipoisson_anx_depr = glm(anx_depr~sex+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+
                          social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_anx_depr)
+drop1(mod_quasipoisson_anx_depr, test = 'F')
 #removing PHYSICAL ACTIVITY
-mod_quasipoisson = glm(anx_depr~sex+people_cohabiting+size+slenderness+
+mod_quasipoisson_anx_depr = glm(anx_depr~sex+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+DA+SWTD+DOES+SHY+
                          social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_anx_depr)
+drop1(mod_quasipoisson_anx_depr, test = 'F')
 #removing SIZE
-mod_quasipoisson = glm(anx_depr~sex+people_cohabiting+slenderness+
+mod_quasipoisson_anx_depr = glm(anx_depr~sex+people_cohabiting+slenderness+
                          race_ethnicity+DIMS+DA+SWTD+DOES+SHY+
                          social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_anx_depr)
+drop1(mod_quasipoisson_anx_depr, test = 'F')
 
 par(mfrow = c(2, 2))
-plot(mod_quasipoisson)
+plot(mod_quasipoisson_anx_depr)
 par(mfrow = c(1,1))
 
-#MODEL 6: GLM WITH NEGATIVE BINOMIAL FAMILY
-mod_negbin = glm.nb(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+#GLM WITH NEGATIVE BINOMIAL FAMILY
+mod_negbin_anx_depr = glm.nb(anx_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_anx_depr, cor = FALSE)
+drop1(mod_negbin_anx_depr, test = "Chi")
 
 #removing AGE_MONTHS, VIDEO_TIME and VIDEOGAMES_TIME
-mod_negbin = glm.nb(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_anx_depr = glm.nb(anx_depr~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                       social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_anx_depr, cor = FALSE)
+drop1(mod_negbin_anx_depr, test = "Chi")
 #removing PARENTS_INCOME
-mod_negbin = glm.nb(anx_depr~sex+people_cohabiting+size+slenderness+
+mod_negbin_anx_depr = glm.nb(anx_depr~sex+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                       social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_anx_depr, cor = FALSE)
+drop1(mod_negbin_anx_depr, test = "Chi")
 #removing TV_TIME
 mod_negbin = glm.nb(anx_depr~sex+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+
@@ -392,856 +368,948 @@ mod_negbin = glm.nb(anx_depr~sex+people_cohabiting+size+slenderness+
 summary(mod_negbin, cor = FALSE)
 drop1(mod_negbin, test = "Chi")
 #removing SIZE and SLENDERNESS
-mod_negbin = glm.nb(anx_depr~sex+people_cohabiting+
+mod_negbin_anx_depr = glm.nb(anx_depr~sex+people_cohabiting+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+
                       social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_anx_depr, cor = FALSE)
+drop1(mod_negbin_anx_depr, test = "Chi")
 
 par(mfrow = c(2, 2))
-plot(mod_negbin)
+plot(mod_negbin_anx_depr)
 par(mfrow = c(1,1))
 
-#MODEL 7 : GLM ZERO INFLATED MODELS
-mod_zip <- zeroinfl(anx_depr~-1+size+slenderness+
+#GLM ZERO INFLATED MODELS
+mod_zip_anx_depr <- zeroinfl(anx_depr~-1+size+slenderness+
                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity
                       +tv_time| sex+people_cohabiting+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY
                     +social_activities_time ,
                     dist = "poisson", link = "logit")
-summary(mod_zip)
+summary(mod_zip_anx_depr)
 
-mod_zinb <- zeroinfl(anx_depr~race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+
+mod_zinb_anx_depr <- zeroinfl(anx_depr~race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+
                        social_activities_time | sex+people_cohabiting+
                        race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY, dist = "negbin", link = "logit")
-summary(mod_zinb)
-lrtest(mod_zip, mod_zinb)
+summary(mod_zinb_anx_depr)
 
-check_collinearity(mod_zinb) #there aren't high VIF anymore
+lrtest(mod_zip_anx_depr, mod_zinb_anx_depr)
 
-
-coeffs <- coef(mod_zinb,model = "zero")
-Z <- model.matrix(mod_zinb,model = "zero")
+coeffs <- coef(mod_zinb_anx_depr,model = "zero")
+Z <- model.matrix(mod_zinb_anx_depr,model = "zero")
 g <- Z %*% coeffs
 p <- exp(g) / (1 + exp(g))
 
-coeffs_count <- coef(mod_zinb, model = "count")
-X <- model.matrix(mod_zinb, model = "count")
+coeffs_count <- coef(mod_zinb_anx_depr, model = "count")
+X <- model.matrix(mod_zinb_anx_depr, model = "count")
 g2 <- X %*% coeffs_count
 mu1 <- exp(g2)
 
 mu <- (1 - p) * mu1
 
-res = residuals(mod_zinb)
-pears_res = res / sqrt(mu*(1+mu1*p))  
-plot(res,anx_depr) 
-plot(pears_res, anx_depr) #•there's still heteroschedasticity
-
-#Model interpretation
-qplot(tv_time,mu, ylim = c(0,120)) + stat_smooth()
+res_anx_depr = residuals(mod_zinb_anx_depr)
+pears_res_anx_depr = res_anx_depr / sqrt(mu*(1+mu1*p))  
+plot(res_anx_depr,anx_depr) 
+plot(pears_res_anx_depr, anx_depr) #•there's still heteroschedasticity
 
 
-#MODELS FOR WITH_DEPR
+
+#### MODELS FOR WITH_DEPR
 #GLM WITH POISSON FAMILY
-mod_poisson = glm(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_with_depr = glm(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_with_depr)
+drop1(mod_poisson_with_depr)
 #removing RACE_ETHNICITY
-mod_poisson = glm(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_with_depr = glm(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_with_depr)
+drop1(mod_poisson_with_depr)
 #removing PEOPLE_COHABITING
-mod_poisson = glm(with_depr~age_months+sex+parents_income+size+slenderness+
+mod_poisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+slenderness+
                     DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_with_depr)
+drop1(mod_poisson_with_depr)
 #removing TV_TIME
-mod_poisson = glm(with_depr~age_months+sex+parents_income+size+slenderness+
+mod_poisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+slenderness+
                     DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
+summary(mod_poisson_with_depr)
 
 par(mfrow = c(2, 2))
-plot(mod_poisson)
+plot(mod_poisson_with_depr)
 par(mfrow = c(1,1))
 
+
 #GLM WITH POISSON FAMILY WITH OVERDISPERSION
-mod_quasipoisson = glm(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_with_depr = glm(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_with_depr)
+drop1(mod_quasipoisson_with_depr, test = 'F')
 #removing PEOPLE_COHABITING
-mod_quasipoisson = glm(with_depr~age_months+sex+parents_income+size+slenderness+
+mod_quasipoisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_with_depr)
+drop1(mod_quasipoisson_with_depr, test = 'F')
 #removing RACE_ETHNICITY
-mod_quasipoisson = glm(with_depr~age_months+sex+parents_income+size+slenderness+
+mod_quasipoisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+slenderness+
                          +DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_with_depr)
+drop1(mod_quasipoisson_with_depr, test = 'F')
 #removing TV_TIME
-mod_quasipoisson = glm(with_depr~age_months+sex+parents_income+size+slenderness+
+mod_quasipoisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+slenderness+
                          +DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_with_depr)
+drop1(mod_quasipoisson_with_depr, test = 'F')
 #removing SLENDERNESS
-mod_quasipoisson = glm(with_depr~age_months+sex+parents_income+size+
+mod_quasipoisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+
                          +DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_with_depr)
+drop1(mod_quasipoisson_with_depr, test = 'F')
 #removing SBD
-mod_quasipoisson = glm(with_depr~age_months+sex+parents_income+size+
+mod_quasipoisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+
                          +DIMS+DA+SWTD+DOES+SHY+physical_activity+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_with_depr)
+drop1(mod_quasipoisson_with_depr, test = 'F')
 #removing DA
-mod_quasipoisson = glm(with_depr~age_months+sex+parents_income+size+
+mod_quasipoisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+
                          +DIMS+SWTD+DOES+SHY+physical_activity+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
+summary(mod_quasipoisson_with_depr)
 #removing DA
-mod_quasipoisson = glm(with_depr~age_months+sex+parents_income+size+
+mod_quasipoisson_with_depr = glm(with_depr~age_months+sex+parents_income+size+
                          +DIMS+SWTD+DOES+SHY+physical_activity+video_time+
                          social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
+summary(mod_quasipoisson_with_depr)
 
 par(mfrow = c(2, 2))
-plot(mod_quasipoisson)
+plot(mod_quasipoisson_with_depr)
 par(mfrow = c(1,1))
 
 #GLM WITH NEGATIVE BINOMIAL FAMILY
-mod_negbin = glm.nb(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_with_depr = glm.nb(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_with_depr, cor = FALSE)
+drop1(mod_negbin_with_depr, test = "Chi")
 
 #removing SBD
-mod_negbin = glm.nb(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_with_depr = glm.nb(with_depr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_with_depr, cor = FALSE)
+drop1(mod_negbin_with_depr, test = "Chi")
 #removing PEOPLE_COHABITING
-mod_negbin = glm.nb(with_depr~age_months+sex+parents_income+size+slenderness+
+mod_negbin_with_depr = glm.nb(with_depr~age_months+sex+parents_income+size+slenderness+
                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_with_depr, cor = FALSE)
+drop1(mod_negbin_with_depr, test = "Chi")
 #removing TV_TIME
-mod_negbin = glm.nb(with_depr~age_months+sex+parents_income+size+slenderness+
+mod_negbin_with_depr = glm.nb(with_depr~age_months+sex+parents_income+size+slenderness+
                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_with_depr, cor = FALSE)
+drop1(mod_negbin_with_depr, test = "Chi")
 
 par(mfrow = c(2, 2))
-plot(mod_negbin)
+plot(mod_negbin_with_depr)
 par(mfrow = c(1,1))
 
 #GLM ZERO INFLATED MODELS
-mod_zip <- zeroinfl(with_depr~age_months+sex+parents_income+size+
+mod_zip_with_depr <- zeroinfl(with_depr~age_months+sex+parents_income+size+
                       DIMS+SBD+SWTD+DOES+SHY+physical_activity+
                       videogames_time+social_activities_time|age_months+parents_income+
                       DIMS+SBD+DA+SWTD+DOES+physical_activity+video_time+
                       social_activities_time, dist = "poisson", link = "logit")
-summary(mod_zip)
+summary(mod_zip_with_depr)
 
-mod_zinb <- zeroinfl(with_depr~age_months+sex+parents_income+size+
+mod_zinb_with_depr <- zeroinfl(with_depr~age_months+sex+parents_income+size+
                        race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+video_time+
                        videogames_time+social_activities_time | size+
                        SBD+SWTD+DOES+physical_activity, dist = "negbin", link = "logit")
-summary(mod_zinb)
-lrtest(mod_zip, mod_zinb)
-check_collinearity(mod_zinb) #there aren't high VIF anymore
+summary(mod_zinb_with_depr)
+lrtest(mod_zip_with_depr, mod_zinb_with_depr)
 
 
-coeffs <- coef(mod_zinb,model = "zero")
-Z <- model.matrix(mod_zinb,model = "zero")
+coeffs <- coef(mod_zinb_with_depr,model = "zero")
+Z <- model.matrix(mod_zinb_with_depr,model = "zero")
 g <- Z %*% coeffs
 p <- exp(g) / (1 + exp(g))
 
-coeffs_count <- coef(mod_zinb, model = "count")
-X <- model.matrix(mod_zinb, model = "count")
+coeffs_count <- coef(mod_zinb_with_depr, model = "count")
+X <- model.matrix(mod_zinb_with_depr, model = "count")
 g2 <- X %*% coeffs_count
 mu1 <- exp(g2)
 
 mu <- (1 - p) * mu1
 
-res = residuals(mod_zinb)
-pears_res = res / sqrt(mu*(1+mu1*p))  
-plot(res,with_depr) 
-plot(pears_res, with_depr) #•there's still heteroschedasticity
-
-#Model interpretation
-qplot(tv_time,mu, ylim = c(0,120)) + stat_smooth()
+res_with_depr = residuals(mod_zinb_with_depr)
+pears_res_with_depr = res_with_depr / sqrt(mu*(1+mu1*p))  
+plot(res_with_depr,with_depr) 
+plot(pears_res_with_depr, with_depr) #•there's still heteroschedasticity
 
 
-#MODELS FOR SOM_COMP
+#### MODELS FOR SOM_COMP
 
 #GLM WITH POISSON FAMILY
-mod_poisson = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_som_comp = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_som_comp)
+drop1(mod_poisson_som_comp)
 #removing TV_TIME
-mod_poisson = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_som_comp = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_som_comp)
+drop1(mod_poisson_som_comp)
 #removing VIDEOGAMES_TIME
-mod_poisson = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_som_comp = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+video_time+
                     social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_som_comp)
+drop1(mod_poisson_som_comp)
 #removing PHYSICAL ACTIVITY and AGE_MONTHS
-mod_poisson = glm(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_som_comp = glm(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+video_time+
                     social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_som_comp)
+drop1(mod_poisson_som_comp)
 #removing PHYSICAL ACTIVITY and AGE_MONTHS
-mod_poisson = glm(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_som_comp = glm(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+video_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_som_comp)
+drop1(mod_poisson_som_comp)
 
 par(mfrow = c(2, 2))
-plot(mod_poisson)
+plot(mod_poisson_som_comp)
 par(mfrow = c(1,1))
 
 #GLM WITH POISSON FAMILY WITH OVERDISPERSION
-mod_quasipoisson = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_som_comp = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_som_comp)
+drop1(mod_quasipoisson_som_comp, test = 'F')
 #removing TV_TIME, VIDEOGAMES_TIME, SOCIAL_ACTIVITIES_TIME
-mod_quasipoisson = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_som_comp = glm(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+
                          physical_activity+video_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_som_comp)
+drop1(mod_quasipoisson_som_comp, test = 'F')
 #removing AGE_MONTHS
-mod_quasipoisson = glm(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_som_comp = glm(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+
                          physical_activity+video_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_som_comp)
+drop1(mod_quasipoisson_som_comp, test = 'F')
 #removing PHYSICAL_ACTIVITY
-mod_quasipoisson = glm(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_som_comp = glm(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+video_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_som_comp)
+drop1(mod_quasipoisson_som_comp, test = 'F')
 
 par(mfrow = c(2, 2))
-plot(mod_quasipoisson)
+plot(mod_quasipoisson_som_comp)
 par(mfrow = c(1,1))
 
 #GLM WITH NEGATIVE BINOMIAL FAMILY
-mod_negbin = glm.nb(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_som_comp = glm.nb(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_som_comp, cor = FALSE)
+drop1(mod_negbin_som_comp, test = "Chi")
 
 #removing TV_TIME, VIDEOGAMES_TIME, SOCIAL_ACTIVITIES_TIME
-mod_negbin = glm.nb(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_som_comp = glm.nb(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+video_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_som_comp, cor = FALSE)
+drop1(mod_negbin_som_comp, test = "Chi")
 #removing AGE_MONTHS
-mod_negbin = glm.nb(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_som_comp = glm.nb(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+video_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_som_comp, cor = FALSE)
+drop1(mod_negbin_som_comp, test = "Chi")
 #removing PHYSICAL_ACTIVITY
-mod_negbin = glm.nb(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_som_comp = glm.nb(som_comp~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+video_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_som_comp, cor = FALSE)
+drop1(mod_negbin_som_comp, test = "Chi")
 
 par(mfrow = c(2, 2))
-plot(mod_negbin)
+plot(mod_negbin_som_comp)
 par(mfrow = c(1,1))
 
 #GLM ZERO INFLATED MODELS
-mod_zip <- zeroinfl(som_comp~-1+sex+parents_income+people_cohabiting+size+slenderness+
+mod_zip_som_comp <- zeroinfl(som_comp~-1+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+video_time|sex+people_cohabiting+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY, dist = "poisson", link = "logit")
-summary(mod_zip)
+summary(mod_zip_som_comp)
 
-mod_zinb <- zeroinfl(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_zinb_som_comp <- zeroinfl(som_comp~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                        race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+video_time | age_months+people_cohabiting+
                        race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity, dist = "negbin", link = "logit")
-summary(mod_zinb)
-lrtest(mod_zip, mod_zinb)
-check_collinearity(mod_zinb) #there aren't high VIF anymore
+summary(mod_zinb_som_comp)
+lrtest(mod_zip_som_comp, mod_zinb_som_comp)
 
 
-coeffs <- coef(mod_zinb,model = "zero")
-Z <- model.matrix(mod_zinb,model = "zero")
+coeffs <- coef(mod_zinb_som_comp,model = "zero")
+Z <- model.matrix(mod_zinb_som_comp,model = "zero")
 g <- Z %*% coeffs
 p <- exp(g) / (1 + exp(g))
 
-coeffs_count <- coef(mod_zinb, model = "count")
-X <- model.matrix(mod_zinb, model = "count")
+coeffs_count <- coef(mod_zinb_som_comp, model = "count")
+X <- model.matrix(mod_zinb_som_comp, model = "count")
 g2 <- X %*% coeffs_count
 mu1 <- exp(g2)
 
 mu <- (1 - p) * mu1
 
-res = residuals(mod_zinb)
-pears_res = res / sqrt(mu*(1+mu1*p))  
-plot(res,som_comp) 
-plot(pears_res,som_comp) #•there's still heteroschedasticity
-
-#Model interpretation
-qplot(tv_time,mu, ylim = c(0,120)) + stat_smooth()
+res_som_comp = residuals(mod_zinb_som_comp)
+pears_res_som_comp = res_som_comp / sqrt(mu*(1+mu1*p))  
+plot(res_som_comp,som_comp) 
+plot(pears_res_som_comp,som_comp) #•there's still heteroschedasticity
 
 
-#MODELS FOR SOCIAL_PR
+
+#### MODELS FOR SOCIAL_PR
 
 #GLM WITH POISSON FAMILY
-mod_poisson = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_social_pr = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_social_pr)
+drop1(mod_poisson_social_pr)
 #removing SOCIAL_ACTIVITIES_TIME
-mod_poisson = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_social_pr = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_social_pr)
+drop1(mod_poisson_social_pr)
 #removing VIDEO_TIME
-mod_poisson = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_social_pr = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_social_pr)
+drop1(mod_poisson_social_pr)
 
 par(mfrow = c(2, 2))
-plot(mod_poisson)
+plot(mod_poisson_social_pr)
 par(mfrow = c(1,1))
 
 #GLM WITH POISSON FAMILY WITH OVERDISPERSION
-mod_quasipoisson = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_social_pr = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_social_pr)
+drop1(mod_quasipoisson_social_pr, test = 'F')
 #removing VIDEO_TIME, VIDEOGAMES_TIME, SOCIAL_ACTIVITIES_TIME
-mod_quasipoisson = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_social_pr = glm(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_social_pr)
+drop1(mod_quasipoisson_social_pr, test = 'F')
 #removing PEOPLE_COHABITING
-mod_quasipoisson = glm(social_pr~age_months+sex+parents_income+size+slenderness+
+mod_quasipoisson_social_pr = glm(social_pr~age_months+sex+parents_income+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_social_pr)
+drop1(mod_quasipoisson_social_pr, test = 'F')
 #removing SBD
-mod_quasipoisson = glm(social_pr~age_months+sex+parents_income+size+slenderness+
+mod_quasipoisson_social_pr = glm(social_pr~age_months+sex+parents_income+size+slenderness+
                          race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_social_pr)
+drop1(mod_quasipoisson_social_pr, test = 'F')
 
 par(mfrow = c(2, 2))
-plot(mod_quasipoisson)
+plot(mod_quasipoisson_social_pr)
 par(mfrow = c(1,1))
 
 #GLM WITH NEGATIVE BINOMIAL FAMILY
-mod_negbin = glm.nb(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_social_pr = glm.nb(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_social_pr, cor = FALSE)
+drop1(mod_negbin_social_pr, test = "Chi")
 
 #removing VIDEO_TIME, VIDEOGAMES_TIME, SOCIAL_ACTIVITIES_TIME
-mod_negbin = glm.nb(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_social_pr = glm.nb(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_social_pr, cor = FALSE)
+drop1(mod_negbin_social_pr, test = "Chi")
 
 #removing PEOPLE_COHABITING
-mod_negbin = glm.nb(social_pr~age_months+sex+parents_income+size+slenderness+
+mod_negbin_social_pr = glm.nb(social_pr~age_months+sex+parents_income+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_social_pr, cor = FALSE)
+drop1(mod_negbin_social_pr, test = "Chi")
 
 par(mfrow = c(2, 2))
-plot(mod_negbin)
+plot(mod_negbin_social_pr)
 par(mfrow = c(1,1))
 
 #GLM ZERO INFLATED MODELS
-mod_zip <- zeroinfl(social_pr~age_months+sex+parents_income+size+slenderness+
+mod_zip_social_pr <- zeroinfl(social_pr~age_months+sex+parents_income+size+slenderness+
                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                       videogames_time | age_months+parents_income+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity, dist = "poisson", link = "logit")
-summary(mod_zip)
+summary(mod_zip_social_pr)
 
-mod_zinb <- zeroinfl(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_zinb_social_pr <- zeroinfl(social_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                        race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                        videogames_time | age_months+DIMS+SBD+DA+SWTD+DOES+SHY+
                        physical_activity, dist = "negbin", link = "logit")
-summary(mod_zinb)
-lrtest(mod_zip, mod_zinb)
-check_collinearity(mod_zinb) #there aren't high VIF anymore
+summary(mod_zinb_social_pr)
+lrtest(mod_zip_social_pr, mod_zinb_social_pr)
 
 
-coeffs <- coef(mod_zinb,model = "zero")
-Z <- model.matrix(mod_zinb,model = "zero")
+coeffs <- coef(mod_zinb_social_pr,model = "zero")
+Z <- model.matrix(mod_zinb_social_pr,model = "zero")
 g <- Z %*% coeffs
 p <- exp(g) / (1 + exp(g))
 
-coeffs_count <- coef(mod_zinb, model = "count")
-X <- model.matrix(mod_zinb, model = "count")
+coeffs_count <- coef(mod_zinb_social_pr, model = "count")
+X <- model.matrix(mod_zinb_social_pr, model = "count")
 g2 <- X %*% coeffs_count
 mu1 <- exp(g2)
 
 mu <- (1 - p) * mu1
 
-res = residuals(mod_zinb)
-pears_res = res / sqrt(mu*(1+mu1*p))  
-plot(res,som_comp) 
-plot(pears_res,som_comp) #•there's still heteroschedasticity
+res_social_pr = residuals(mod_zinb_social_pr)
+pears_res_social_pr = res_social_pr / sqrt(mu*(1+mu1*p))  
+plot(res_social_pr,social_pr) 
+plot(pears_res_social_pr,social_pr) #•there's still heteroschedasticity
 
 
-#MODELS FOR THOUGHT_PR
+#### MODELS FOR THOUGHT_PR
 
 #GLM WITH POISSON FAMILY
-mod_poisson = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_thought_pr = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_thought_pr)
+drop1(mod_poisson_thought_pr)
 #removing SOCIAL_ACTIVITIES_TIME
-mod_poisson = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_thought_pr = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_thought_pr)
+drop1(mod_poisson_thought_pr)
 #removing SBD
-mod_poisson = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_thought_pr = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_thought_pr)
+drop1(mod_poisson_thought_pr)
 #removing AGE_MONTHS
-mod_poisson = glm(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_thought_pr = glm(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_thought_pr)
+drop1(mod_poisson_thought_pr)
 #removing PHYSICAL_ACTIVITY
-mod_poisson = glm(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_thought_pr = glm(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+DA+SWTD+DOES+SHY+tv_time+video_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_thought_pr)
+drop1(mod_poisson_thought_pr)
 #removing VIDEO_TIME
-mod_poisson = glm(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_thought_pr = glm(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+DA+SWTD+DOES+SHY+tv_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_thought_pr)
+drop1(mod_poisson_thought_pr)
 
 
 par(mfrow = c(2, 2))
-plot(mod_poisson)
+plot(mod_poisson_thought_pr)
 par(mfrow = c(1,1))
 
 #GLM WITH POISSON FAMILY WITH OVERDISPERSION
-mod_quasipoisson = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_thought_pr = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_thought_pr)
+drop1(mod_quasipoisson_thought_pr, test = 'F')
 #removing VIDEO_TIME, SOCIAL_ACTIVITIES_TIME
-mod_quasipoisson = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_thought_pr = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+videogames_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_thought_pr)
+drop1(mod_quasipoisson_thought_pr, test = 'F')
 #removing PHYSICAL_ACTIVITY
-mod_quasipoisson = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_thought_pr = glm(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+tv_time+videogames_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_thought_pr)
+drop1(mod_quasipoisson_thought_pr, test = 'F')
 #removing SBD and AGE_MONTHS
-mod_quasipoisson = glm(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_thought_pr = glm(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+DA+SWTD+DOES+SHY+tv_time+videogames_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_thought_pr)
+drop1(mod_quasipoisson_thought_pr, test = 'F')
 
 par(mfrow = c(2, 2))
-plot(mod_quasipoisson)
+plot(mod_quasipoisson_thought_pr)
 par(mfrow = c(1,1))
 
 #GLM WITH NEGATIVE BINOMIAL FAMILY
-mod_negbin = glm.nb(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_thought_pr = glm.nb(thought_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_thought_pr, cor = FALSE)
+drop1(mod_negbin_thought_pr, test = "Chi")
 
 #removing AGE_MONTHS
-mod_negbin = glm.nb(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_thought_pr = glm.nb(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_thought_pr, cor = FALSE)
+drop1(mod_negbin_thought_pr, test = "Chi")
 
 #removing SOCIAL_ACTIVITIES_TIME
-mod_negbin = glm.nb(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_thought_pr = glm.nb(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_thought_pr, cor = FALSE)
+drop1(mod_negbin_thought_pr, test = "Chi")
 
 #removing PHYSICAL_ACTIVITY
-mod_negbin = glm.nb(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_thought_pr = glm.nb(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+tv_time+video_time+
                       videogames_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_thought_pr, cor = FALSE)
+drop1(mod_negbin_thought_pr, test = "Chi")
 #removing VIDEO_TIME
-mod_negbin = glm.nb(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_thought_pr = glm.nb(thought_pr~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+tv_time+
                       videogames_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_thought_pr, cor = FALSE)
+drop1(mod_negbin_thought_pr, test = "Chi")
 
 par(mfrow = c(2, 2))
-plot(mod_negbin)
+plot(mod_negbin_thought_pr)
 par(mfrow = c(1,1))
 
 #GLM ZERO INFLATED MODELS
-mod_zip <- zeroinfl(thought_pr~sex+parents_income+size+slenderness+
+mod_zip_thought_pr <- zeroinfl(thought_pr~sex+parents_income+size+slenderness+
                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                       videogames_time | sex+people_cohabiting+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY, dist = "poisson", link = "logit")
-summary(mod_zip)
+summary(mod_zip_thought_pr)
 
-mod_zinb <- zeroinfl(thought_pr~sex+parents_income+size+slenderness+
+mod_zinb_thought_pr <- zeroinfl(thought_pr~sex+parents_income+size+slenderness+
                        race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                        videogames_time | sex+people_cohabiting+
                        race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY, dist = "negbin", link = "logit")
-summary(mod_zinb)
-lrtest(mod_zip, mod_zinb)
-check_collinearity(mod_zinb) #there aren't high VIF anymore
+summary(mod_zinb_thought_pr)
+lrtest(mod_zip_thought_pr, mod_zinb_thought_pr)
 
 
-coeffs <- coef(mod_zinb,model = "zero")
-Z <- model.matrix(mod_zinb,model = "zero")
+coeffs <- coef(mod_zinb_thought_pr,model = "zero")
+Z <- model.matrix(mod_zinb_thought_pr,model = "zero")
 g <- Z %*% coeffs
 p <- exp(g) / (1 + exp(g))
 
-coeffs_count <- coef(mod_zinb, model = "count")
-X <- model.matrix(mod_zinb, model = "count")
+coeffs_count <- coef(mod_zinb_thought_pr, model = "count")
+X <- model.matrix(mod_zinb_thought_pr, model = "count")
 g2 <- X %*% coeffs_count
 mu1 <- exp(g2)
 
 mu <- (1 - p) * mu1
 
-res = residuals(mod_zinb)
-pears_res = res / sqrt(mu*(1+mu1*p))  
-plot(res,som_comp) 
-plot(pears_res,som_comp) #•there's still heteroschedasticity
+res_thought_pr = residuals(mod_zinb_thought_pr)
+pears_res_thought_pr = res_thought_pr / sqrt(mu*(1+mu1*p))  
+plot(res_thought_pr, thought_pr) 
+plot(pears_res_thought_pr, thought_pr) #•there's still heteroschedasticity
 
 
-#MODELS FOR ATT_PR
+#### MODELS FOR ATT_PR
 
 #GLM WITH POISSON FAMILY
-mod_poisson = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_att_pr = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_att_pr)
+drop1(mod_poisson_att_pr)
 #removing SOCIAL_ACTIVITIES_TIME
-mod_poisson = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_att_pr = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_att_pr)
+drop1(mod_poisson_att_pr)
 #removing SBD
-mod_poisson = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_att_pr = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_att_pr)
+drop1(mod_poisson_att_pr)
 
 
 par(mfrow = c(2, 2))
-plot(mod_poisson)
+plot(mod_poisson_att_pr)
 par(mfrow = c(1,1))
 
 #GLM WITH POISSON FAMILY WITH OVERDISPERSION
-mod_quasipoisson = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_att_pr = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_att_pr)
+drop1(mod_quasipoisson_att_pr, test = 'F')
 #removing SOCIAL_ACTIVITIES_TIME
-mod_quasipoisson = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_att_pr = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+videogames_time+video_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_att_pr)
+drop1(mod_quasipoisson_att_pr, test = 'F')
 #removing SBD
-mod_quasipoisson = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_att_pr = glm(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+videogames_time+video_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_att_pr)
+drop1(mod_quasipoisson_att_pr, test = 'F')
 #removing AGE_MONTHS
-mod_quasipoisson = glm(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_att_pr = glm(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+videogames_time+video_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_att_pr)
+drop1(mod_quasipoisson_att_pr, test = 'F')
 
 par(mfrow = c(2, 2))
-plot(mod_quasipoisson)
+plot(mod_quasipoisson_att_pr)
 par(mfrow = c(1,1))
 
 #GLM WITH NEGATIVE BINOMIAL FAMILY
-mod_negbin = glm.nb(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_att_pr = glm.nb(att_pr~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_att_pr, cor = FALSE)
+drop1(mod_negbin_att_pr, test = "Chi")
 
 #removing AGE_MONTHS
-mod_negbin = glm.nb(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_att_pr = glm.nb(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_att_pr, cor = FALSE)
+drop1(mod_negbin_att_pr, test = "Chi")
 
 #removing SOCIAL_ACTIVITIES_TIME
-mod_negbin = glm.nb(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_att_pr = glm.nb(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_att_pr, cor = FALSE)
+drop1(mod_negbin_att_pr, test = "Chi")
 
 
 par(mfrow = c(2, 2))
-plot(mod_negbin)
+plot(mod_negbin_att_pr)
 par(mfrow = c(1,1))
 
 #GLM ZERO INFLATED MODELS
-mod_zip <- zeroinfl(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_zip_att_pr <- zeroinfl(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time | age_months+sex+people_cohabiting+size+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                       videogames_time, dist = "poisson", link = "logit")
-summary(mod_zip)
+summary(mod_zip_att_pr)
 
-mod_zinb <- zeroinfl(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
+mod_zinb_att_pr <- zeroinfl(att_pr~sex+parents_income+people_cohabiting+size+slenderness+
                        race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                        videogames_time | age_months+sex+people_cohabiting+
                        DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity, dist = "negbin", link = "logit")
-summary(mod_zinb)
+summary(mod_zinb_att_pr)
 
-lrtest(mod_zip, mod_zinb)
-check_collinearity(mod_zinb) #there aren't high VIF anymore
+lrtest(mod_zip_att_pr, mod_zinb_att_pr)
 
-
-coeffs <- coef(mod_zinb,model = "zero")
-Z <- model.matrix(mod_zinb,model = "zero")
+coeffs <- coef(mod_zinb_att_pr,model = "zero")
+Z <- model.matrix(mod_zinb_att_pr,model = "zero")
 g <- Z %*% coeffs
 p <- exp(g) / (1 + exp(g))
 
-coeffs_count <- coef(mod_zinb, model = "count")
-X <- model.matrix(mod_zinb, model = "count")
+coeffs_count <- coef(mod_zinb_att_pr, model = "count")
+X <- model.matrix(mod_zinb_att_pr, model = "count")
 g2 <- X %*% coeffs_count
 mu1 <- exp(g2)
 
 mu <- (1 - p) * mu1
 
-res = residuals(mod_zinb)
-pears_res = res / sqrt(mu*(1+mu1*p))  
-plot(res,att_pr) 
-plot(pears_res,att_pr) #•there's still heteroschedasticity
+res_att_pr = residuals(mod_zinb_att_pr)
+pears_res_att_pr = res_att_pr / sqrt(mu*(1+mu1*p))  
+plot(res_att_pr,att_pr) 
+plot(pears_res_att_pr,att_pr) #•there's still heteroschedasticity
 
 
-#MODELS FOR RULE_BR_BH
+#### MODELS FOR RULE_BR_BH
 
 #GLM WITH POISSON FAMILY
-mod_poisson = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_poisson_rule_br_bh = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_rule_br_bh)
+drop1(mod_poisson_rule_br_bh)
 #removing SIZE
-mod_poisson = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+slenderness+
+mod_poisson_rule_br_bh = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                     videogames_time+social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_rule_br_bh)
+drop1(mod_poisson_rule_br_bh)
 #removing VIDEO_TIME and VIDEOGAMES_TIME
-mod_poisson = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+slenderness+
+mod_poisson_rule_br_bh = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+
                     tv_time++social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_rule_br_bh)
+drop1(mod_poisson_rule_br_bh)
 #removing PHYSICAL_ACTIVITY
-mod_poisson = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+slenderness+
+mod_poisson_rule_br_bh = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+slenderness+
                     race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+
                     tv_time++social_activities_time, family = poisson)
-summary(mod_poisson)
-drop1(mod_poisson)
+summary(mod_poisson_rule_br_bh)
+drop1(mod_poisson_rule_br_bh)
 
 par(mfrow = c(2, 2))
 plot(mod_poisson)
 par(mfrow = c(1,1))
 
 #GLM WITH POISSON FAMILY WITH OVERDISPERSION
-mod_quasipoisson = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_quasipoisson_rule_br_bh = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_rule_br_bh)
+drop1(mod_quasipoisson_rule_br_bh, test = 'F')
 #removing SIZE and SLENDERNESS
-mod_quasipoisson = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
+mod_quasipoisson_rule_br_bh = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                          videogames_time+social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_rule_br_bh)
+drop1(mod_quasipoisson_rule_br_bh, test = 'F')
 #removing VIDEO_TIME and VIDEOGAMES_TIME
-mod_quasipoisson = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
+mod_quasipoisson_rule_br_bh = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                          social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_rule_br_bh)
+drop1(mod_quasipoisson_rule_br_bh, test = 'F')
 #removing SHY and PHYSICAL ACTIVITY
-mod_quasipoisson = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
+mod_quasipoisson_rule_br_bh = glm(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
                          race_ethnicity+DIMS+SBD+DA+SWTD+DOES+tv_time+
                          social_activities_time, family = quasipoisson)
-summary(mod_quasipoisson)
-drop1(mod_quasipoisson, test = 'F')
+summary(mod_quasipoisson_rule_br_bh)
+drop1(mod_quasipoisson_rule_br_bh, test = 'F')
 
 par(mfrow = c(2, 2))
 plot(mod_quasipoisson)
 par(mfrow = c(1,1))
 
 #GLM WITH NEGATIVE BINOMIAL FAMILY
-mod_negbin = glm.nb(rule_br_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+mod_negbin_rule_br_bh = glm.nb(rule_br_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_rule_br_bh, cor = FALSE)
+drop1(mod_negbin_rule_br_bh, test = "Chi")
 
 #removing SIZE and SLENDERNESS
-mod_negbin = glm.nb(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
+mod_negbin_rule_br_bh = glm.nb(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
                       videogames_time+social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_rule_br_bh, cor = FALSE)
+drop1(mod_negbin_rule_br_bh, test = "Chi")
 
 #removing VIDEO_TIME, VIDEOGAMES_TIME
-mod_negbin = glm.nb(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
+mod_negbin_rule_br_bh = glm.nb(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
                       social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_rule_br_bh, cor = FALSE)
+drop1(mod_negbin_rule_br_bh, test = "Chi")
 #removing PHYSICAL_ACTIVITY
-mod_negbin = glm.nb(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
+mod_negbin_rule_br_bh = glm.nb(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+tv_time+
                       social_activities_time, link = "log")
-summary(mod_negbin, cor = FALSE)
-drop1(mod_negbin, test = "Chi")
+summary(mod_negbin_rule_br_bh, cor = FALSE)
+drop1(mod_negbin_rule_br_bh, test = "Chi")
 
 par(mfrow = c(2, 2))
-plot(mod_negbin)
+plot(mod_negbin_rule_br_bh)
 par(mfrow = c(1,1))
 
 #GLM ZERO INFLATED MODELS
-mod_zip <- zeroinfl(rule_br_bh~sex+parents_income+people_cohabiting+
+mod_zip_rule_br_bh <- zeroinfl(rule_br_bh~sex+parents_income+people_cohabiting+
                       race_ethnicity+DIMS+DA+SWTD+DOES+physical_activity+tv_time
                     +social_activities_time | age_months+sex+parents_income+people_cohabiting+
                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+video_time+
                       social_activities_time, dist = "poisson", link = "logit")
-summary(mod_zip)
+summary(mod_zip_rule_br_bh)
 
-mod_zinb <- zeroinfl(rule_br_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
-                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
-                       videogames_time+social_activities_time | age_months+sex+parents_income+people_cohabiting+size+slenderness+
-                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
-                       videogames_time+social_activities_time, dist = "negbin", link = "logit")
-summary(mod_zinb)
+mod_zinb_rule_br_bh <- zeroinfl(rule_br_bh~age_months+sex+parents_income+people_cohabiting+
+                       race_ethnicity+DIMS+DA+SWTD+DOES+tv_time+
+                       social_activities_time | age_months+sex+people_cohabiting+
+                       DIMS+SBD+DA+SWTD+DOES+SHY, dist = "negbin", link = "logit")
+summary(mod_zinb_rule_br_bh)
 
-lrtest(mod_zip, mod_zinb)
-check_collinearity(mod_zinb) #there aren't high VIF anymore
+lrtest(mod_zip_rule_br_bh, mod_zinb_rule_br_bh)
 
 
-coeffs <- coef(mod_zinb,model = "zero")
-Z <- model.matrix(mod_zinb,model = "zero")
+coeffs <- coef(mod_zinb_rule_br_bh,model = "zero")
+Z <- model.matrix(mod_zinb_rule_br_bh,model = "zero")
 g <- Z %*% coeffs
 p <- exp(g) / (1 + exp(g))
 
-coeffs_count <- coef(mod_zinb, model = "count")
-X <- model.matrix(mod_zinb, model = "count")
+coeffs_count <- coef(mod_zinb_rule_br_bh, model = "count")
+X <- model.matrix(mod_zinb_rule_br_bh, model = "count")
 g2 <- X %*% coeffs_count
 mu1 <- exp(g2)
 
 mu <- (1 - p) * mu1
 
-res = residuals(mod_zinb)
-pears_res = res / sqrt(mu*(1+mu1*p))  
-plot(res,att_pr) 
-plot(pears_res,att_pr) #•there's still heteroschedasticity
+res_rule_br_bh = residuals(mod_zinb_rule_br_bh)
+pears_res_rule_br_bh = res_rule_br_bh / sqrt(mu*(1+mu1*p))  
+plot(res_rule_br_bh,rule_br_bh) 
+plot(pears_res_rule_br_bh,rule_br_bh) #•there's still heteroschedasticity
 
-#"att_pr"                
-#"rule_br_bh"             "agg_bh"   
+#### MODELS FOR AGG_BH
+
+#GLM WITH POISSON FAMILY
+mod_poisson_agg_bh = glm(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                    race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
+                    videogames_time+social_activities_time, family = poisson)
+summary(mod_poisson_agg_bh)
+drop1(mod_poisson_agg_bh)
+#removing VIDEO_TIME
+mod_poisson_agg_bh = glm(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                    race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+                    videogames_time+social_activities_time, family = poisson)
+summary(mod_poisson_agg_bh)
+drop1(mod_poisson_agg_bh)
+#removing SBD
+mod_poisson_agg_bh = glm(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                    race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+                    videogames_time+social_activities_time, family = poisson)
+summary(mod_poisson_agg_bh)
+drop1(mod_poisson_agg_bh)
+#removing VIDEOGAMES_TIME
+mod_poisson_agg_bh = glm(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                    race_ethnicity+DIMS+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+                    social_activities_time, family = poisson)
+summary(mod_poisson_agg_bh)
+drop1(mod_poisson_agg_bh)
+
+par(mfrow = c(2, 2))
+plot(mod_poisson_agg_bh)
+par(mfrow = c(1,1))
+
+#GLM WITH POISSON FAMILY WITH OVERDISPERSION
+mod_quasipoisson_agg_bh = glm(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                         race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
+                         videogames_time+social_activities_time, family = quasipoisson)
+summary(mod_quasipoisson_agg_bh)
+drop1(mod_quasipoisson_agg_bh, test = 'F')
+#removing VIDEO_TIME and VIDEOGAMES_TIME
+mod_quasipoisson_agg_bh = glm(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                         race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+                         social_activities_time, family = quasipoisson)
+summary(mod_quasipoisson_agg_bh)
+drop1(mod_quasipoisson_agg_bh, test = 'F')
+#removing SBD and PHYSICAL_ACTIVITY
+mod_quasipoisson_agg_bh = glm(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                         race_ethnicity+DIMS+DA+SWTD+DOES+SHY+tv_time+
+                         social_activities_time, family = quasipoisson)
+summary(mod_quasipoisson_agg_bh)
+drop1(mod_quasipoisson_agg_bh, test = 'F')
 
 
+par(mfrow = c(2, 2))
+plot(mod_quasipoisson_agg_bh)
+par(mfrow = c(1,1))
+
+#GLM WITH NEGATIVE BINOMIAL FAMILY
+mod_negbin_agg_bh = glm.nb(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                      race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+
+                      videogames_time+social_activities_time, link = "log")
+summary(mod_negbin_agg_bh, cor = FALSE)
+drop1(mod_negbin_agg_bh, test = "Chi")
+
+#removing VIDEO_TIME, VIDEOGAMES_TIME
+mod_negbin_agg_bh = glm.nb(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                      race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+
+                      social_activities_time, link = "log")
+summary(mod_negbin_agg_bh, cor = FALSE)
+drop1(mod_negbin_agg_bh, test = "Chi")
+
+#removing PHYSICAL_ACTIVITY
+mod_negbin_agg_bh = glm.nb(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                      race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+tv_time+
+                      social_activities_time, link = "log")
+summary(mod_negbin_agg_bh, cor = FALSE)
+drop1(mod_negbin_agg_bh, test = "Chi")
 
 
+par(mfrow = c(2, 2))
+plot(mod_negbin_agg_bh)
+par(mfrow = c(1,1))
+
+#GLM ZERO INFLATED MODELS
+mod_zip_agg_bh <- zeroinfl(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                      race_ethnicity+DIMS+DA+SWTD+DOES+SHY+tv_time+
+                      videogames_time+social_activities_time | age_months+sex+parents_income+people_cohabiting+
+                      race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+tv_time, dist = "poisson", link = "logit")
+summary(mod_zip)
+
+mod_zinb_agg_bh <- zeroinfl(agg_bh~age_months+sex+parents_income+people_cohabiting+size+slenderness+
+                       race_ethnicity+DIMS+DA+SWTD+DOES+SHY+tv_time+
+                       videogames_time+social_activities_time | sex+parents_income+
+                       race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+tv_time+
+                       videogames_time, dist = "negbin", link = "logit")
+summary(mod_zinb_agg_bh)
+
+lrtest(mod_zip_agg_bh, mod_zinb_agg_bh)
+
+coeffs <- coef(mod_zinb_agg_bh,model = "zero")
+Z <- model.matrix(mod_zinb_agg_bh,model = "zero")
+g <- Z %*% coeffs
+p <- exp(g) / (1 + exp(g))
+
+coeffs_count <- coef(mod_zinb_agg_bh, model = "count")
+X <- model.matrix(mod_zinb_agg_bh, model = "count")
+g2 <- X %*% coeffs_count
+mu1 <- exp(g2)
+
+mu <- (1 - p) * mu1
+
+res_agg_bh = residuals(mod_zinb_agg_bh)
+pears_res_agg_bh = res_agg_bh / sqrt(mu*(1+mu1*p))  
+plot(res_agg_bh,agg_bh) 
+plot(pears_res_agg_bh,agg_bh) #•there's still heteroschedasticity
+  
 
 
-# Model selection
-RsquaredAdj = c(
-summary(simple_reg)$adj.r.squared,
-summary(simple_reg_std)$adj.r.squared,
-summary(interaction_reg)$adj.r.squared
-)
-Rsquared = c(
-summary(simple_reg)$r.squared,
-summary(simple_reg_std)$r.squared,
-summary(interaction_reg)$r.squared
-)
-Aic = AIC(simple_reg,simple_reg_std,interaction_reg)[,2]
-ModelChoice = data.frame(
-Mod=c("Simple Regression","Simple Regression - Std Dataset","Regression with interaction"),
-RsquaredAdj=RsquaredAdj,
-Rsquared=Rsquared,
-Aic = Aic
-)
-ModelChoice # il nuovo modello è il migliore
-write.table(ModelChoice, file = "ModelChoice.txt", sep = ",", quote = FALSE, row.names = T)
+### Model selection
+
+# RsquaredAdj = c(
+# summary(simple_reg)$adj.r.squared,
+# summary(simple_reg_std)$adj.r.squared,
+# summary(interaction_reg)$adj.r.squared
+# )
+# Rsquared = c(
+# summary(simple_reg)$r.squared,
+# summary(simple_reg_std)$r.squared,
+# summary(interaction_reg)$r.squared
+# )
+# Aic = AIC(simple_reg,simple_reg_std,interaction_reg)[,2]
+# ModelChoice = data.frame(
+# Mod=c("Simple Regression","Simple Regression - Std Dataset","Regression with interaction"),
+# RsquaredAdj=RsquaredAdj,
+# Rsquared=Rsquared,
+# Aic = Aic
+# )
+# ModelChoice # il nuovo modello è il migliore
+# write.table(ModelChoice, file = "ModelChoice.txt", sep = ",", quote = FALSE, row.names = T)
 
 
-fit_glm = predict(simple_reg_glm, newdata = dataset)
+model_selection <- function(mod,mod_poisson,mod_quasipoisson,mod_negbin,mod_zip,mod_zinb) {
 fit_poiss = predict(mod_poisson, newdata = dataset)
 fit_qpoiss = predict(mod_quasipoisson, newdata = dataset)
 fit_nb = predict(mod_negbin, newdata = dataset)
 fit_zip = predict(mod_zip, newdata = dataset)
 fit_zinb = predict(mod_zinb, newdata = dataset)
 r_corr = c(
-  cor(fit_glm, cbcl_score, method = "pearson"),
   cor(fit_poiss, cbcl_score, method = "pearson"),
   cor(fit_qpoiss, cbcl_score, method = "pearson"),
   cor(fit_nb, cbcl_score, method = "pearson"),
@@ -1249,31 +1317,13 @@ r_corr = c(
   cor(fit_zinb, cbcl_score, method = "pearson")
   )
 p_corr = c(
-  cor(fit_glm, cbcl_score, method = "spearman"),
   cor(fit_poiss, cbcl_score, method = "spearman"),
   cor(fit_qpoiss, cbcl_score, method = "spearman"),
   cor(fit_nb, cbcl_score, method = "spearman"),
   cor(fit_zip, cbcl_score, method = "spearman"),
   cor(fit_zinb, cbcl_score, method = "spearman")
   )
-#Intercept = c(
-#  coef(lm(cbcl_score~fit_glm))[1],
-#  coef(lm(cbcl_score~fit_poiss))[1],
-#  coef(lm(cbcl_score~fit_qpoiss))[1],
-#  coef(lm(cbcl_score~fit_nb))[1],
-#  coef(lm(cbcl_score~fit_zip))[1],
-#  coef(lm(cbcl_score~fit_zinb))[1]
-#  )
-#Slope = c(
-#  coef(lm(cbcl_score~fit_glm))[2],
-#  coef(lm(cbcl_score~fit_poiss))[2],
-#  coef(lm(cbcl_score~fit_qpoiss))[2],
-#  coef(lm(cbcl_score~fit_nb))[2],
-#  coef(lm(cbcl_score~fit_zip))[2],
-#  coef(lm(cbcl_score~fit_zinb))[2]
-#  )
 MSE = c(
-  MSE(cbcl_score,fit_glm),
   MSE(cbcl_score,fit_poiss),
   MSE(cbcl_score,fit_qpoiss),
   MSE(cbcl_score,fit_nb),
@@ -1281,26 +1331,45 @@ MSE = c(
   MSE(cbcl_score,fit_zinb)
   )
 mae = c(
-  MAE(cbcl_score,fit_glm),
   MAE(cbcl_score,fit_poiss),
   MAE(cbcl_score,fit_qpoiss),
   MAE(cbcl_score,fit_nb),
   MAE(cbcl_score,fit_zip),
   MAE(cbcl_score,fit_zinb)
   )
-Aic = AIC(simple_reg_glm,mod_poisson,mod_quasipoisson,mod_negbin,mod_zip,mod_zinb)
+Aic = AIC(mod_poisson,mod_quasipoisson,mod_negbin,mod_zip,mod_zinb)
 ModelSelection = data.frame(
-  Mod=c("Gaussian","Poisson", "Poisson with overdispersion", "Negative Binomial", "Zero Inflated Poisson", "Zero Inflated Negative Binomial"),
+  Mod=c("Poisson", "Poisson with overdispersion", "Negative Binomial", "Zero Inflated Poisson", "Zero Inflated Negative Binomial"),
   Pearson_correlation = r_corr,
   Spearman_correlation = p_corr,
-#  Intercept = Intercept,
-#  Slope = Slope,
   MSE = MSE,
   MAE = mae,
   AIC = Aic[,2],
   Df = Aic[,1]
   )
-ModelSelection
+  colnames(ModelSelection) = c(paste("Model for", mod), "Pearson corr.", "Spearman corr.", "MSE", "MAE", "AIC", "Df")
+return(ModelSelection)
+}
+
+ModelSelection_cbcl = model_selection("cbcl_score",mod_poisson_cbcl,mod_quasipoisson_cbcl,mod_negbin_cbcl,mod_zip_cbcl,mod_zinb_cbcl)
+write.table(ModelSelection_cbcl, file = "ModelSelection_cbcl.csv", sep = ",", quote = FALSE)
+ModelSelection_anx_depr = model_selection("anx_depr",mod_poisson_anx_depr,mod_quasipoisson_anx_depr,mod_negbin_anx_depr,mod_zip_anx_depr,mod_zinb_anx_depr)
+write.table(ModelSelection_anx_depr, file = "ModelSelection_anx_depr.csv", sep = ",", quote = FALSE)
+ModelSelection_with_depr = model_selection("with_depr",mod_poisson_with_depr,mod_quasipoisson_with_depr,mod_negbin_with_depr,mod_zip_with_depr,mod_zinb_with_depr)
+write.table(ModelSelection_with_depr, file = "ModelSelection_with_depr.csv", sep = ",", quote = FALSE)
+ModelSelection_som_comp = model_selection("som_comp",mod_poisson_som_comp,mod_quasipoisson_som_comp,mod_negbin_som_comp,mod_zip_som_comp,mod_zinb_som_comp)
+write.table(ModelSelection_som_comp, file = "ModelSelection_som_comp.csv", sep = ",", quote = FALSE)
+ModelSelection_social_pr = model_selection("social_pr",mod_poisson_social_pr,mod_quasipoisson_social_pr,mod_negbin_social_pr,mod_zip_social_pr,mod_zinb_social_pr)
+write.table(ModelSelection_social_pr, file = "ModelSelection_social_pr.csv", sep = ",", quote = FALSE)
+ModelSelection_thought_pr = model_selection("thought_pr",mod_poisson_thought_pr,mod_quasipoisson_thought_pr,mod_negbin_thought_pr,mod_zip_thought_pr,mod_zinb_thought_pr)
+write.table(ModelSelection_thought_pr, file = "ModelSelection_thought_pr.csv", sep = ",", quote = FALSE)
+ModelSelection_att_pr = model_selection("att_pr",mod_poisson_att_pr,mod_quasipoisson_att_pr,mod_negbin_att_pr,mod_zip_att_pr,mod_zinb_att_pr)
+write.table(ModelSelection_att_pr, file = "ModelSelection_att_pr.csv", sep = ",", quote = FALSE)
+ModelSelection_rule_br_bh = model_selection("rule_br_bh",mod_poisson_rule_br_bh,mod_quasipoisson_rule_br_bh,mod_negbin_rule_br_bh,mod_zip_rule_br_bh,mod_zinb_rule_br_bh)
+write.table(ModelSelection_rule_br_bh, file = "ModelSelection_rule_br_bh.csv", sep = ",", quote = FALSE)
+ModelSelection_agg_bh = model_selection("agg_bh",mod_poisson_agg_bh,mod_quasipoisson_agg_bh,mod_negbin_agg_bh,mod_zip_agg_bh,mod_zinb_agg_bh)
+write.table(ModelSelection_agg_bh, file = "ModelSelection_agg_bh.csv", sep = ",", quote = FALSE)
+
 
 
 
