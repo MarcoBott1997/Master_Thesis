@@ -1,0 +1,6 @@
+White,Black/Afr.Amer.,Hispanic,Asian,Other/Mixed
+White,-,-0.662 [-0.877 -0.448],n.s.,-0.497 [-0.985 -0.010],n.s.
+Black/Afr.Amer.,0.662 [0.448 0.877],-,0.523 [0.278 0.768],n.s.,0.474 [0.164 0.785]
+Hispanic,n.s.,-0.523 [-0.768 -0.278],-,n.s.,n.s.
+Asian,0.497 [0.010 0.985],n.s.,n.s.,-,n.s.
+Other/Mixed,n.s.,-0.474 [-0.785 -0.163],n.s.,n.s.,-
