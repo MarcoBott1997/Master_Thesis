@@ -1,0 +1,4 @@
+"LThickness"	"RThickness"	"LSurfArea"	"RSurfArea"	"ICV"	"age_months"	"sex"	"parents_income"	"people_cohabiting"	"race_ethnicity"	"DIMS"	"SBD"	"DA"	"SWTD"	"DOES"	"SHY"	"anx_depr"	"with_depr"	"som_comp"	"social_pr"	"thought_pr"	"att_pr"	"rule_br_bh"	"agg_bh"	"cbcl_score"	"physical_activity"	"tv_time"	"video_time"	"videogames_time"	"social_activities_time"	"size"	"slenderness"
+2.717	2.745	82683.4	94983.8	1444140	135	"M"	"1"	4	"5"	19	7	4	12	17	2	5	3	1	4	3	11	3	9	39	1	4	0.571428571428571	0.571428571428571	0	-0.395832579549833	0.0909389293437766
+2.795	2.778	91968.3	92233.9	1577970	121	"M"	"1"	4	"5"	13	6	3	13	5	2	2	0	0	4	5	8	6	14	39	0	3.28571428571429	3.28571428571429	4	0.607142857142857	-0.56730241421546	-0.734752159239006
+2.717	2.699	99458.4	100813	1539240	141	"M"	"9"	12	"1"	10	4	3	6	7	2	0	0	1	0	0	0	0	3	4	4	2.42857142857143	0.785714285714286	0.25	0.5	0.845718037927219	1.61922284151996
