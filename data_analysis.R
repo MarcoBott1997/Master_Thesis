@@ -29,8 +29,6 @@ balance_years(tab)
 
 write.table(tab, file = "data_merged_cleaned.csv", sep = "\t", row.names = F)
 
-
-
 rm(list = ls())
 library(dplyr)
 library(ggplot2)
@@ -1564,9 +1562,6 @@ write.table(ModelSelection_rule_br_bh, file = "ModelSelection_rule_br_bh.csv", s
 ModelSelection_agg_bh = model_selection("agg_bh",mod_poisson_agg_bh,mod_quasipoisson_agg_bh,mod_negbin_agg_bh,mod_zip_agg_bh,mod_zinb_agg_bh)
 write.table(ModelSelection_agg_bh, file = "ModelSelection_agg_bh.csv", sep = ",", quote = FALSE)
 
-
-
-
 #anx_depr
 simple_reg_anx_depr = lm(anx_depr~age_months+sex+parents_income+people_cohabiting+height_cm+weight_kg+waist_cm+bmi+race_ethnicity+DIMS+SBD+DA+SWTD+DOES+SHY+physical_activity+tv_time+video_time+videogames_time+social_activities_time)
 summary(simple_reg_anx_depr)
@@ -1624,5 +1619,12 @@ get_symbol <- function(mod_summary_sign) {
 }
 matrix_estimates[,c(2,4,5,8)] = get_symbol(matrix_estimates[,c(2,4,6,8)])
 write.table(matrix_estimates, file = "matrix_estimates.txt", sep = ",", quote = FALSE, row.names = T)
+
+
+dataset_year1 = dataset[dataset$eventname == "1_year_follow_up_y_arm_1",]
+dataset_year0 = dataset[dataset$eventname == "baseline_year_1_arm_1",]
+diff_dataset = dataset_year1 - dataset_year0
+
+
 
 
