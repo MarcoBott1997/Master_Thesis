@@ -196,6 +196,7 @@ simple_lm_sroi2 = lm(d0[,4]~age_months + sex + parents_income + people_cohabitin
                        physical_activity + tv_time +  videogames_time + video_time +
                        social_activities_time, data = d0)
 
+
 #Effects map for surface
 lower = ~tv_time +  videogames_time + video_time +
   social_activities_time
@@ -203,8 +204,19 @@ upper = ~age_months + sex + parents_income + people_cohabiting + size +
   slenderness + race_ethnicity + DIMS + SBD + DA + SWTD + DOES + SHY + 
   physical_activity + tv_time +  videogames_time + video_time +
   social_activities_time
+simple_lm_sroi2 = step(lm(d0[,4]~age_months + sex + parents_income + people_cohabiting + size + 
+                            slenderness + race_ethnicity + DIMS + SBD + DA + SWTD + DOES + SHY + 
+                            physical_activity + tv_time +  videogames_time + video_time +
+                            social_activities_time, data = d0), trace = 0, scope = list(upper = upper, lower = lower))
 
 eff_map = cbind(summary(simple_lm_sroi2)$coefficients[c("tv_time","video_time","videogames_time", "social_activities_time"),],confint(simple_lm_sroi2)[c("tv_time","video_time","videogames_time", "social_activities_time"),])
+for (i in 4:37) {
+  d0[,i] = d0[,i]/d0$LSurfArea
+}
+for (i in 38:71) {
+  d0[,i] = d0[,i]/d0$RSurfArea
+}
+
 for (i in 4:71) {
   print((i-3)/0.68)
   simple_lm_sroi2 = step(lm(d0[,i]~age_months + sex + parents_income + people_cohabiting + size + 
@@ -218,10 +230,10 @@ eff_map = eff_map[-c(1,2,3,4),]
 p_fdr = p.adjust(eff_map[,4], 'bonferroni')
 p_fdr[p_fdr<0.05]
 Eff_map = as.data.frame(eff_map[,c(1,2,5,6,4)])
-Eff_map$pAdj_bonf =  eff_map[,4]*dim(eff_map)[1]/4
+Eff_map$pAdj_bonf =  p.adjust(eff_map[,4], 'bonferroni')
 Eff_map$pAdj_fdr =  p.adjust(eff_map[,4], 'fdr')
 
-write.csv(eff_map, file = "map_surf.csv",row.names = T)
+write.csv(Eff_map, file = "map_surf_norm.csv",row.names = T)
 
 
 
@@ -245,11 +257,22 @@ summary(simple_lm_troi)$coefficients[coeffs_t,]
 plot(simple_lm_sroi)
 
 #Effects map for thickness
+for (i in 4:37) {
+  d0_t[,i] = d0_t[,i]/d0_t$LSurfArea
+}
+for (i in 38:71) {
+  d0_t[,i] = d0_t[,i]/d0_t$RSurfArea
+}
+
 simple_lm_troi2 = lm(d0_t[,4]~age_months + sex + parents_income + people_cohabiting + size + 
                        slenderness + race_ethnicity + DIMS + SBD + DA + SWTD + DOES + SHY + 
                        physical_activity + tv_time +  videogames_time + video_time +
                        social_activities_time, data = d0_t)
 eff_map_t = cbind(summary(simple_lm_troi2)$coefficients[c("tv_time","video_time","videogames_time", "social_activities_time"),],confint(simple_lm_troi2)[c("tv_time","video_time","videogames_time", "social_activities_time"),])
+
+
+
+
 for (i in 4:71) {
   print((i-3)/0.68)
   simple_lm_troi2 = step(lm(d0_t[,i]~age_months + sex + parents_income + people_cohabiting + size + 
@@ -264,13 +287,13 @@ eff_map_t = eff_map_t[-c(1,2,3,4),]
 
 
 Eff_map_t = as.data.frame(eff_map_t[,c(1,2,5,6,4)])
-Eff_map_t$pAdj_bonf =  eff_map_t[,4]*dim(eff_map_t)[1]/4
+Eff_map_t$pAdj_bonf =  p.adjust(eff_map_t[,4], 'bonferroni')
 Eff_map_t$pAdj_fdr =  p.adjust(eff_map_t[,4], 'fdr')
 
 
 
 
-write.csv(eff_map_t, file = "thick_coeffs.csv",row.names = T)
+write.csv(Eff_map_t, file = "map_thick_norm.csv",row.names = T)
 
 
 #Difference statistics
