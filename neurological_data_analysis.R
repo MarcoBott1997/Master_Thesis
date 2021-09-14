@@ -60,8 +60,8 @@ thickness_data = balance_years(thickness_data)
 d0 = merge(x = surface_data, y = dataset, by = c("subjectkey","eventname"))
 d0_t = merge(x = thickness_data, y = dataset, by = c("subjectkey","eventname"))
 d1 = d0[,-c(1:71,81:84,92:103,108:112)]
-write.table(d1, file = "neuro_data_small.csv", sep = "\t", row.names = F)
-write.table(d0, file = "thick_data.csv", sep = "\t",row.names = F)
+#write.table(d1, file = "neuro_data_small.csv", sep = "\t", row.names = F)
+#write.table(d0, file = "thick_data.csv", sep = "\t",row.names = F)
 detach(d1)
 attach(d1)
 
@@ -79,9 +79,72 @@ ordered_factor <- function(fact_var) {
 }
 
 d0$parents_income = ordered_factor(d0$parents_income)
-d0_t$parents_income = ordered_factor(d0$parents_income)
+d0_t$parents_income = ordered_factor(d0_t$parents_income)
 d1$parents_income = ordered_factor(d1$parents_income)
 
+
+
+###Anatomical models
+mod = lm(LSurfArea ~ age_months + sex + size + slenderness + 
+           race_ethnicity + SWTD + physical_activity + social_activities_time, 
+         data = d1)
+
+summary(mod)
+
+table_construction <- function(n1) {
+  race_table = data.frame(1,2,3)
+  
+  for (i in 1:5) {
+    contrasts(race_ethnicity) = contr.treatment(5, base = i)
+    contrasts(d1$race_ethnicity) = contr.treatment(5, base = i)
+    mod <- lm(LSurfArea ~ age_months + sex + size + slenderness + 
+                race_ethnicity + SWTD + physical_activity + social_activities_time, 
+              data = d1)
+    coeffs_mod = summary(mod)$coefficients[,1]
+    t = cbind (coeffs_mod, confint(mod))
+    race_table[((i-1)*4 + 1) : ((i-1)*4 + 4),] = rbind(t[n1,],t[n1+1,],t[n1+2,],t[n1+3,])
+  }
+  #Matrix construction
+  
+  rt_string = c()
+  rt_numb = c()
+  diag = c(1,7,13,19,25)
+  j = 0
+  for (i in 1:25) {
+    if (i %in% diag) {
+      rt_string[i] = "-"
+      rt_numb[i] = 0
+    }
+    else {
+      j = j+1
+      if (race_table[j,2]*race_table[j,3]>0 || is.na(race_table[j,2]) || is.na(race_table[j,3])) {
+        rt_string[i] = sprintf("%.3f [%.3f %.3f]", race_table[j,1],race_table[j,2],race_table[j,3])
+        rt_numb[i] = race_table[j,1]
+      }
+      else {
+        rt_string[i] = "n.s."
+        rt_numb[i] = 0
+      }
+      
+    }
+  }
+
+  list_of_matrices = c(rt_string, rt_numb)
+  return(list_of_matrices)
+}
+
+matrices = table_construction(6)
+races = c("White", "Black/Afr.Amer.", "Hispanic", "Asian", "Other/Mixed")
+rt_string = array_reshape(matrices[1:25], c(5,5))
+rownames(rt_string) = races
+colnames(rt_string) = races
+write.table(rt_string, file = "races_LSurf.csv", sep = ",", quote = FALSE, row.names = T)
+rt_numb = array_reshape(matrices[26:50], c(5,5))
+rownames(rt_numb) = races
+colnames(rt_numb) = races
+write.table(rt_numb, file = "races_RSurf2.csv", sep = ",", quote = FALSE, row.names = T)
+
+round(t[t[,2]*t[,3]>0,],3)
 #ICV
 simple_lm = lm(ICV~ age_months + sex + size + slenderness + parents_income + race_ethnicity + physical_activity + SBD   ,data = d1)
 summary(simple_lm)
@@ -113,6 +176,7 @@ p5 = ggplot(d1, aes(x= physical_activity, y=res_ICV)) +
   labs(x="Physical activity", y = "Raw residuals")+
   theme_classic() 
 grid.arrange(p1, p2, p3, p4, p5, nrow = 2, ncol = 3)
+
 
 
 #LThickness
@@ -148,15 +212,19 @@ plot(simple_lm_RT)
 par(mfrow = c(1,1))
 
 #LSurface
-simple_lm_LS = step(lm(LSurfArea~age_months + sex + size + slenderness + race_ethnicity + SWTD + physical_activity + social_activities_time,data = d1))
+simple_lm_LS = lm(LSurfArea ~ age_months + sex + size + slenderness + 
+                         race_ethnicity + SWTD + physical_activity + social_activities_time, 
+                       data = d1)
 summary(simple_lm_LS)
 
 par(mfrow = c(2, 2))
 plot(simple_lm_LS)
 par(mfrow = c(1,1))
 
+
 #RSurface
-simple_lm_RS = step(lm(RSurfArea~. -ICV  - LSurfArea - LThickness - RThickness - physical_activity - parents_income - tv_time - social_activities_time,data = d1))
+simple_lm_RS = lm(RSurfArea ~ age_months + sex + size + slenderness + race_ethnicity + 
+                    SWTD + video_time, data = d1)
 summary(simple_lm_RS)
 
 par(mfrow = c(2, 2))
@@ -173,13 +241,14 @@ t_roi$parents_income = as.factor(t_roi$parents_income)
 
 #Dataset big for surface
 simple_lm_sroi = lm(surface~age_months + sex + parents_income + people_cohabiting + size + 
-                      slenderness + race_ethnicity + DIMS + SBD + DA + SWTD + DOES + SHY + 
-                      physical_activity + tv_time +  videogames_time + video_time +
-                      social_activities_time +  region + tv_time:region + 
+                      slenderness + race_ethnicity + DIMS + SBD + SWTD +SHY + 
+                      physical_activity + region + tv_time:region + 
                       video_time:region + videogames_time:region + 
                       social_activities_time:region, data = s_roi)
-summary(simple_lm_sroi)
+res = summary(simple_lm_sroi)$residuals
+plot(s_roi$tv_time*s_roi$region, res)
 
+summary(simple_lm_sroi)
 par(mfrow = c(2, 2))
 plot(simple_lm_sroi)
 par(mfrow = c(1,1))
@@ -198,6 +267,12 @@ simple_lm_sroi2 = lm(d0[,4]~age_months + sex + parents_income + people_cohabitin
 
 
 #Effects map for surface
+for (i in 4:37) {
+  d0[,i] = d0[,i]/d0$LSurfArea
+}
+for (i in 38:71) {
+  d0[,i] = d0[,i]/d0$RSurfArea
+}
 lower = ~tv_time +  videogames_time + video_time +
   social_activities_time
 upper = ~age_months + sex + parents_income + people_cohabiting + size + 
@@ -210,12 +285,7 @@ simple_lm_sroi2 = step(lm(d0[,4]~age_months + sex + parents_income + people_coha
                             social_activities_time, data = d0), trace = 0, scope = list(upper = upper, lower = lower))
 
 eff_map = cbind(summary(simple_lm_sroi2)$coefficients[c("tv_time","video_time","videogames_time", "social_activities_time"),],confint(simple_lm_sroi2)[c("tv_time","video_time","videogames_time", "social_activities_time"),])
-for (i in 4:37) {
-  d0[,i] = d0[,i]/d0$LSurfArea
-}
-for (i in 38:71) {
-  d0[,i] = d0[,i]/d0$RSurfArea
-}
+
 
 for (i in 4:71) {
   print((i-3)/0.68)
@@ -309,9 +379,13 @@ d1_base[c("LThick_diff","RThick_diff","LSurf_diff","RSurf_diff","ICV_diff")] = a
 hist(d1_base$ICV_diff,100)
 
 
-simple_lm_LS_diff = step(lm(RSurf_diff~age_months + sex + parents_income + people_cohabiting + size + 
+simple_lm_LS_diff = step(lm(ICV_diff~age_months + sex + parents_income + people_cohabiting + size + 
                          slenderness + race_ethnicity + DIMS + SBD + DA + SWTD + DOES + SHY + 
                          physical_activity + tv_time +  videogames_time + video_time +
                          social_activities_time, data = d1_base), scope = list(upper=upper,lower = lower))
+simple_lm_LS_diff = lm(ICV_diff~age_months + sex +people_cohabiting + size + 
+                         slenderness + race_ethnicity + DIMS + SBD + DA + SWTD + DOES + SHY + 
+                         physical_activity + tv_time +  videogames_time + video_time +
+                         social_activities_time, data = d1_base)
 summary(simple_lm_LS_diff)
 step()
