@@ -25,7 +25,7 @@ detach(dataset)
 attach(dataset)
 
 surface_data = read.csv("Datasets/CorticalMeasuresABCD_SurfAvg_clean.csv",header = TRUE)
-
+region_names = read.csv("list_regions.csv",header = FALSE)[1:70,]
 thickness_data = read.csv("Datasets/CorticalMeasuresABCD_ThickAvg_clean.csv",header = TRUE)
 
 
@@ -57,10 +57,12 @@ balance_years <- function(tab) {
 }
 surface_data = balance_years(surface_data)
 thickness_data = balance_years(thickness_data)
+ 
 d0 = merge(x = surface_data, y = dataset, by = c("subjectkey","eventname"))
 d0_t = merge(x = thickness_data, y = dataset, by = c("subjectkey","eventname"))
 d1 = d0[,-c(1:71,81:84,92:103,108:112)]
-#write.table(d1, file = "neuro_data_small.csv", sep = "\t", row.names = F)
+d2 = d0[,-c(1:71,101,102,112:115)]
+write.table(d2, file = "neuro_data_small2.csv", sep = "\t", row.names = F)
 #write.table(d0, file = "thick_data.csv", sep = "\t",row.names = F)
 detach(d1)
 attach(d1)
@@ -299,9 +301,40 @@ for (i in 4:71) {
 eff_map = eff_map[-c(1,2,3,4),]
 p_fdr = p.adjust(eff_map[,4], 'bonferroni')
 p_fdr[p_fdr<0.05]
+
+
 Eff_map = as.data.frame(eff_map[,c(1,2,5,6,4)])
-Eff_map$pAdj_bonf =  p.adjust(eff_map[,4], 'bonferroni')
-Eff_map$pAdj_fdr =  p.adjust(eff_map[,4], 'fdr')
+Eff_map_videogames = Eff_map[seq(3,272,4),]
+Eff_map_videogames$pAdj_bonf =  p.adjust(Eff_map_videogames[,5], 'bonferroni')
+Eff_map_videogames$pAdj_fdr =  p.adjust(Eff_map_videogames[,5], 'fdr')
+Eff_map_videogames[Eff_map_videogames$pAdj_fdr<0.05,]
+Eff_map_videogames = as.data.frame(rbind(Eff_map_videogames[1:3,],c(NaN,NaN,NaN,NaN,NaN,NaN,NaN),Eff_map_videogames[4:37,],c(NaN,NaN,NaN,NaN,NaN,NaN,NaN),Eff_map_videogames[38:68,]))
+Eff_map_videogames$Region  = region_names
+
+Eff_map_video = Eff_map[seq(2,272,4),]
+Eff_map_video$pAdj_bonf =  p.adjust(Eff_map_video[,5], 'bonferroni')
+Eff_map_video$pAdj_fdr =  p.adjust(Eff_map_video[,5], 'fdr')
+rownames(Eff_map_video) = list(region_names)
+Eff_map_video[Eff_map_video$pAdj_fdr<0.05,]
+
+Eff_map_social = Eff_map[seq(4,272,4),]
+Eff_map_social$pAdj_bonf =  p.adjust(Eff_map_social[,5], 'bonferroni')
+Eff_map_social$pAdj_fdr =  p.adjust(Eff_map_social[,5], 'fdr')
+rownames(Eff_map_social) = region_names
+Eff_map_social[Eff_map_social$pAdj_fdr<0.05,]
+
+Eff_map_tv = Eff_map[seq(1,272,4),]
+Eff_map_tv$pAdj_bonf =  p.adjust(Eff_map_tv[,5], 'bonferroni')
+Eff_map_tv$pAdj_fdr =  p.adjust(Eff_map_tv[,5], 'fdr')
+rownames(Eff_map_tv) = region_names
+Eff_map_tv[Eff_map_tv$pAdj_fdr<0.05,]
+
+
+
+
+
+
+
 
 write.csv(Eff_map, file = "map_surf_norm.csv",row.names = T)
 
@@ -357,13 +390,34 @@ eff_map_t = eff_map_t[-c(1,2,3,4),]
 
 
 Eff_map_t = as.data.frame(eff_map_t[,c(1,2,5,6,4)])
-Eff_map_t$pAdj_bonf =  p.adjust(eff_map_t[,4], 'bonferroni')
-Eff_map_t$pAdj_fdr =  p.adjust(eff_map_t[,4], 'fdr')
+Eff_map_videogames = Eff_map_t[seq(3,272,4),]
+Eff_map_videogames$pAdj_bonf =  p.adjust(Eff_map_videogames[,5], 'bonferroni')
+Eff_map_videogames$pAdj_fdr =  p.adjust(Eff_map_videogames[,5], 'fdr')
+Eff_map_videogames[Eff_map_videogames$pAdj_fdr<0.05,]
+Eff_map_videogames = as.data.frame(rbind(Eff_map_videogames[1:3,],c(NaN,NaN,NaN,NaN,NaN,NaN,NaN),Eff_map_videogames[4:37,],c(NaN,NaN,NaN,NaN,NaN,NaN,NaN),Eff_map_videogames[38:68,]))
+Eff_map_videogames$Region  = region_names
 
+eff_videogames = Eff_map_videogames[,c(1,7)]
 
+Eff_map_video = Eff_map_t[seq(2,272,4),]
+Eff_map_video$pAdj_bonf =  p.adjust(Eff_map_video[,5], 'bonferroni')
+Eff_map_video$pAdj_fdr =  p.adjust(Eff_map_video[,5], 'fdr')
+rownames(Eff_map_video) = region_names
+Eff_map_video[Eff_map_video$pAdj_fdr<0.05,]
 
+Eff_map_social = Eff_map_t[seq(4,272,4),]
+Eff_map_social$pAdj_bonf =  p.adjust(Eff_map_social[,5], 'bonferroni')
+Eff_map_social$pAdj_fdr =  p.adjust(Eff_map_social[,5], 'fdr')
+rownames(Eff_map_social) = region_names
+Eff_map_social[Eff_map_social$pAdj_fdr<0.05,]
 
-write.csv(Eff_map_t, file = "map_thick_norm.csv",row.names = T)
+Eff_map_tv = Eff_map_t[seq(1,272,4),]
+Eff_map_tv$pAdj_bonf =  p.adjust(Eff_map_tv[,5], 'bonferroni')
+Eff_map_tv$pAdj_fdr =  p.adjust(Eff_map_tv[,5], 'fdr')
+rownames(Eff_map_tv) = region_names
+Eff_map_tv[Eff_map_tv$pAdj_fdr<0.05,]
+
+write.csv(eff_videogames, file = "eff_videogames.csv",row.names = T)
 
 
 #Difference statistics
@@ -389,3 +443,5 @@ simple_lm_LS_diff = lm(ICV_diff~age_months + sex +people_cohabiting + size +
                          social_activities_time, data = d1_base)
 summary(simple_lm_LS_diff)
 step()
+
+
