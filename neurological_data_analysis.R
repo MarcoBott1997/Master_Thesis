@@ -25,7 +25,7 @@ detach(dataset)
 attach(dataset)
 
 surface_data = read.csv("Datasets/CorticalMeasuresABCD_SurfAvg_clean.csv",header = TRUE)
-region_names = read.csv("list_regions.csv",header = FALSE)[1:70,]
+region_names = read.csv("list_regions.csv",header = FALSE)[1:70,][-c(4,39)]
 thickness_data = read.csv("Datasets/CorticalMeasuresABCD_ThickAvg_clean.csv",header = TRUE)
 
 
@@ -307,28 +307,32 @@ Eff_map = as.data.frame(eff_map[,c(1,2,5,6,4)])
 Eff_map_videogames = Eff_map[seq(3,272,4),]
 Eff_map_videogames$pAdj_bonf =  p.adjust(Eff_map_videogames[,5], 'bonferroni')
 Eff_map_videogames$pAdj_fdr =  p.adjust(Eff_map_videogames[,5], 'fdr')
+rownames(Eff_map_videogames) = region_names
 Eff_map_videogames[Eff_map_videogames$pAdj_fdr<0.05,]
 Eff_map_videogames = as.data.frame(rbind(Eff_map_videogames[1:3,],c(NaN,NaN,NaN,NaN,NaN,NaN,NaN),Eff_map_videogames[4:37,],c(NaN,NaN,NaN,NaN,NaN,NaN,NaN),Eff_map_videogames[38:68,]))
 Eff_map_videogames$Region  = region_names
+round(Eff_map_videogames[Eff_map_videogames$`Pr(>|t|)`<0.05,],3)
 
 Eff_map_video = Eff_map[seq(2,272,4),]
 Eff_map_video$pAdj_bonf =  p.adjust(Eff_map_video[,5], 'bonferroni')
 Eff_map_video$pAdj_fdr =  p.adjust(Eff_map_video[,5], 'fdr')
 rownames(Eff_map_video) = list(region_names)
 Eff_map_video[Eff_map_video$pAdj_fdr<0.05,]
+round(Eff_map_video[Eff_map_video$`Pr(>|t|)`<0.05,],3)
 
 Eff_map_social = Eff_map[seq(4,272,4),]
 Eff_map_social$pAdj_bonf =  p.adjust(Eff_map_social[,5], 'bonferroni')
 Eff_map_social$pAdj_fdr =  p.adjust(Eff_map_social[,5], 'fdr')
 rownames(Eff_map_social) = region_names
 Eff_map_social[Eff_map_social$pAdj_fdr<0.05,]
+round(Eff_map_social[Eff_map_social$`Pr(>|t|)`<0.05,],3)
 
 Eff_map_tv = Eff_map[seq(1,272,4),]
 Eff_map_tv$pAdj_bonf =  p.adjust(Eff_map_tv[,5], 'bonferroni')
 Eff_map_tv$pAdj_fdr =  p.adjust(Eff_map_tv[,5], 'fdr')
 rownames(Eff_map_tv) = region_names
 Eff_map_tv[Eff_map_tv$pAdj_fdr<0.05,]
-
+round(Eff_map_tv[Eff_map_tv$`Pr(>|t|)`<0.05,],3)
 
 
 
@@ -360,17 +364,18 @@ summary(simple_lm_troi)$coefficients[coeffs_t,]
 plot(simple_lm_sroi)
 
 #Effects map for thickness
+d0_t2 = d0_t
 for (i in 4:37) {
-  d0_t[,i] = d0_t[,i]/d0_t$LSurfArea
+  d0_t2[,i] = d0_t[,i]/d0_t$LThickness
 }
 for (i in 38:71) {
-  d0_t[,i] = d0_t[,i]/d0_t$RSurfArea
+  d0_t2[,i] = d0_t[,i]/d0_t$RThickness
 }
 
-simple_lm_troi2 = lm(d0_t[,4]~age_months + sex + parents_income + people_cohabiting + size + 
+simple_lm_troi2 = lm(d0_t2[,4]~age_months + sex + parents_income + people_cohabiting + size + 
                        slenderness + race_ethnicity + DIMS + SBD + DA + SWTD + DOES + SHY + 
                        physical_activity + tv_time +  videogames_time + video_time +
-                       social_activities_time, data = d0_t)
+                       social_activities_time, data = d0_t2)
 eff_map_t = cbind(summary(simple_lm_troi2)$coefficients[c("tv_time","video_time","videogames_time", "social_activities_time"),],confint(simple_lm_troi2)[c("tv_time","video_time","videogames_time", "social_activities_time"),])
 
 
@@ -378,10 +383,10 @@ eff_map_t = cbind(summary(simple_lm_troi2)$coefficients[c("tv_time","video_time"
 
 for (i in 4:71) {
   print((i-3)/0.68)
-  simple_lm_troi2 = step(lm(d0_t[,i]~age_months + sex + parents_income + people_cohabiting + size + 
+  simple_lm_troi2 = step(lm(d0_t2[,i]~age_months + sex + parents_income + people_cohabiting + size + 
                          slenderness + race_ethnicity + DIMS + SBD + DA + SWTD + DOES + SHY + 
                          physical_activity + tv_time +  videogames_time + video_time +
-                         social_activities_time, data = d0_t), trace = 0, scope = list(upper = upper, lower = lower))
+                         social_activities_time, data = d0_t2), trace = 0, scope = list(upper = upper, lower = lower))
   tmp = cbind(summary(simple_lm_troi2)$coefficients[c("tv_time","video_time","videogames_time", "social_activities_time"),],confint(simple_lm_troi2)[c("tv_time","video_time","videogames_time", "social_activities_time"),])
   eff_map_t = rbind(eff_map_t,tmp)
 }
@@ -396,7 +401,7 @@ Eff_map_videogames$pAdj_fdr =  p.adjust(Eff_map_videogames[,5], 'fdr')
 Eff_map_videogames[Eff_map_videogames$pAdj_fdr<0.05,]
 Eff_map_videogames = as.data.frame(rbind(Eff_map_videogames[1:3,],c(NaN,NaN,NaN,NaN,NaN,NaN,NaN),Eff_map_videogames[4:37,],c(NaN,NaN,NaN,NaN,NaN,NaN,NaN),Eff_map_videogames[38:68,]))
 Eff_map_videogames$Region  = region_names
-
+round(Eff_map_videogames[Eff_map_videogames$pAdj_fdr<0.05,],3)
 eff_videogames = Eff_map_videogames[,c(1,7)]
 
 Eff_map_video = Eff_map_t[seq(2,272,4),]
